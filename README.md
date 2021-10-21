@@ -1,7 +1,6 @@
-<h1 align="center">yuki</h1>
-<h3 align="center">Custom Crystal web framework</h3>
+<h1 align="center">Yuki</h1>
+<h3 align="center">API Wrapper Generator</h3>
 
 ---
 
-## Why?
-Because pain is fun
+Quickly and easily create a Crystal wrapper for a rest API
