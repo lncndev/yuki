@@ -1,0 +1,17 @@
+name: yuki
+version: 0.1.0
+
+authors:
+  - Lincoln Williams <lincoln@onodb.org>
+
+targets:
+  yuki:
+    main: src/yuki.cr
+
+dependencies:
+  clim:
+    github: at-grandpa/clim
+
+crystal: 1.2.1
+
+license: MIT
