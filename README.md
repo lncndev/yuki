@@ -17,6 +17,14 @@ Known to work with dwm on Arch. Not sure about any other distros or WMs.
 ## How to use
 Run `yuki --help` for instructions
 
+### Tags config file
+If `~/.yuki/TAGS` exists, Yuki will pull from it. Format it like so:
+```
+nagato_yuki 1girl
+suzumiya_haruhi
+takemoto_uruka
+```
+
 ## Dependencies
  - `feh`
  - Crystal compiler if you want to compile it yourself
