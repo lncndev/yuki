@@ -8,21 +8,31 @@ module Yuki
     main do
       desc "Yuki: Grab and set random anime wallpapers"
       usage "yuki [search] [options]"
-      option "-t TAGS", "--tags TAGS", type: String, desc: "Tags to search for (separate tags with a single space, separate searches with a single comma)", default: "nagato_yuki"
+      option "-t TAGS", "--tags TAGS", type: String, desc: "Tags to search for (separate tags with a single space, separate searches with a single comma)", required: false
       option "-s", "--safe", type: Bool, desc: "Safe results only"
       option "-q", "--questionable", type: Bool, desc: "Safe and questionable results only"
       option "-r", "--recent", type: Bool, desc: "Choose from recent posts rather than specifying tags"
       option "--style", type: String, desc: "Scale style: scale, fill, max, tile, center", default: "fill"
 
       run do |opts, args|
-        tags = Danbooru.choose_random_search(opts.tags)
+        tags : String = FileUtils.cd("/home/" + ENV["USER"] + "/.yuki") do
+          if opts.tags.to_s.empty? != true
+            Danbooru.choose_random_search(opts.tags.to_s.split(",")).to_s
+          elsif File.read("TAGS").to_s.empty? != true
+            Danbooru.choose_random_search(File.read("TAGS").to_s.split("\n")).to_s
+          else
+            "yuki_nagato"
+          end
+        end
+
+        puts "Finding image for \"" + tags + "\""
 
         Danbooru.get_results_for(tags, opts.recent) do |results|
-          Danbooru.cleanse_results(results, if opts.safe; "s"; elsif opts.questionable; "q"; else; "e" end) do |results|
+          Danbooru.cleanse_results(results, if opts.safe == true; "s"; elsif opts.questionable == true; "q"; else; "e" end) do |results|
             Danbooru.get_random_from(results) do |post|
               FileUtils.cd("/home/" + ENV["USER"] + "/.yuki") do
-                File.write("wallpaper." + post["file_ext"].to_s, HTTP::Client.get(post["large_file_url"]).body.to_s)
-                File.write("CURRENT_WALLPAPER", post["id"])
+                File.write("wallpaper." + post["file_ext"].to_s, HTTP::Client.get(post["file_url"]?.to_s).body.to_s)
+                File.write("CURRENT_WALLPAPER", post["id"]?)
                 Process.run("feh --bg-" + opts.style.to_s + " wallpaper." + post["file_ext"], shell: true)
               end
             end
@@ -35,7 +45,7 @@ module Yuki
 
         run do
           FileUtils.cd("/home/" + ENV["USER"] + "/.yuki") do
-            puts "Current wallpaper: https://danbooru.donmai.us/posts/" + File.read("CURRENT_WALLPAPER")
+            puts "\nCurrent wallpaper: https://danbooru.donmai.us/posts/" + File.read("CURRENT_WALLPAPER").to_s + "\n"
           end
         end
       end
@@ -52,7 +62,7 @@ module Yuki
       end
 
       json_results = JSON.parse(raw_results)
-      results = Array(NamedTuple(large_file_url: String, file_ext: String, rating: String, id: Int32)).from_json(raw_results)
+      results = Array(NamedTuple(large_file_url: String | Nil, file_url: String | Nil, file_ext: String, rating: String, id: Int32 | String | Nil)).from_json(raw_results)
 
       yield results
     end
@@ -80,11 +90,18 @@ module Yuki
       yield post
     end
 
-    def self.choose_random_search(searches : String)
-      searches = searches.split(",")
-      rndnum = Random.new.rand(searches.size)
-      search = searches[rndnum]
-      return search
+    def self.choose_random_search(searches : Array)
+      searches.delete("")
+
+      begin
+        rndnum = Random.new.rand(searches.size)
+        search = searches[rndnum]
+        return search
+      rescue
+        rndnum = Random.new.rand(searches.size)
+        search = searches[rndnum]
+        return search
+      end
     end
   end
 end
