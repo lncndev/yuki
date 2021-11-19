@@ -2,7 +2,7 @@ name: yuki
 version: 0.2.0
 
 authors:
-  - Lincoln Williams <lincoln@onodb.org>
+  - Lincoln Williams <lincoln@lncn.dev>
 
 targets:
   yuki:
